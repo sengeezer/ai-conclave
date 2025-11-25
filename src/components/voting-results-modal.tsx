@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import type { VotingResult } from "@/types/models";
 import { AVAILABLE_MODELS } from "@/types/models";
@@ -62,8 +62,8 @@ export function VotingResultsModal({
 
           {/* Responses Tab */}
           <TabsContent value="responses" className="flex-1 min-h-0">
-            <ScrollArea className="h-[60vh]">
-              <div className="space-y-4 pr-4">
+            <ScrollArea className="h-[60vh] w-full">
+              <div className="space-y-4 pr-4 w-full">
                 {successfulResponses.map((response, index) => {
                   const score = scores.find((s) => s.modelId === response.modelId);
                   const isWinner = response.modelId === winnerId;
@@ -72,13 +72,13 @@ export function VotingResultsModal({
                   return (
                     <div
                       key={response.modelId}
-                      className={`p-4 rounded-lg border ${
+                      className={`rounded-lg border overflow-hidden ${
                         isWinner
                           ? "border-yellow-500/50 bg-yellow-500/5"
                           : "border-border"
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between p-4 pb-0 mb-3">
                         <div className="flex items-center gap-2">
                           {rank === 1 && (
                             <Trophy className="h-5 w-5 text-yellow-500" />
@@ -105,15 +105,139 @@ export function VotingResultsModal({
                           {score?.score || 0} points
                         </div>
                       </div>
-                      <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <Markdown remarkPlugins={[remarkGfm]}>
-                          {response.content}
-                        </Markdown>
+                      <div className="p-4 pt-0 overflow-x-auto">
+                        <div 
+                          className="prose prose-sm dark:prose-invert max-w-full"
+                          style={{ 
+                            wordBreak: 'break-word', 
+                            overflowWrap: 'anywhere',
+                            width: '100%',
+                          }}
+                        >
+                          <Markdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              pre: ({ children }) => (
+                                <pre className="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm text-zinc-100 whitespace-pre max-w-full">
+                                  {children}
+                                </pre>
+                              ),
+                              code: ({ className, children, ...props }) => {
+                                const isInline = !className;
+                                return isInline ? (
+                                  <code
+                                    className="rounded bg-muted px-1.5 py-0.5 text-sm font-mono break-all"
+                                    {...props}
+                                  >
+                                    {children}
+                                  </code>
+                                ) : (
+                                  <code className={`${className} text-zinc-100`} {...props}>
+                                    {children}
+                                  </code>
+                                );
+                              },
+                              table: ({ children }) => (
+                                <div className="overflow-x-auto max-w-full my-4">
+                                  <table className="min-w-0 border-collapse">{children}</table>
+                                </div>
+                              ),
+                              th: ({ children }) => (
+                                <th className="border border-border px-3 py-2 text-left font-semibold bg-muted/50">
+                                  {children}
+                                </th>
+                              ),
+                              td: ({ children }) => (
+                                <td className="border border-border px-3 py-2 break-words">
+                                  {children}
+                                </td>
+                              ),
+                              a: ({ children, href, ...props }) => (
+                                <a 
+                                  href={href} 
+                                  className="text-blue-500 hover:underline break-all"
+                                  {...props}
+                                >
+                                  {children}
+                                </a>
+                              ),
+                              p: ({ children }) => (
+                                <p className="break-words my-2" style={{ overflowWrap: 'anywhere' }}>
+                                  {children}
+                                </p>
+                              ),
+                              ul: ({ children }) => (
+                                <ul className="list-disc pl-6 my-2 space-y-1 break-words">
+                                  {children}
+                                </ul>
+                              ),
+                              ol: ({ children }) => (
+                                <ol className="list-decimal pl-6 my-2 space-y-1 break-words">
+                                  {children}
+                                </ol>
+                              ),
+                              li: ({ children }) => (
+                                <li className="break-words" style={{ overflowWrap: 'anywhere' }}>
+                                  {children}
+                                </li>
+                              ),
+                              h1: ({ children }) => (
+                                <h1 className="text-2xl font-bold mt-6 mb-3 break-words">
+                                  {children}
+                                </h1>
+                              ),
+                              h2: ({ children }) => (
+                                <h2 className="text-xl font-bold mt-5 mb-2 break-words">
+                                  {children}
+                                </h2>
+                              ),
+                              h3: ({ children }) => (
+                                <h3 className="text-lg font-bold mt-4 mb-2 break-words">
+                                  {children}
+                                </h3>
+                              ),
+                              h4: ({ children }) => (
+                                <h4 className="text-base font-bold mt-3 mb-1 break-words">
+                                  {children}
+                                </h4>
+                              ),
+                              h5: ({ children }) => (
+                                <h5 className="text-sm font-bold mt-2 mb-1 break-words">
+                                  {children}
+                                </h5>
+                              ),
+                              h6: ({ children }) => (
+                                <h6 className="text-xs font-bold mt-2 mb-1 break-words">
+                                  {children}
+                                </h6>
+                              ),
+                              blockquote: ({ children }) => (
+                                <blockquote className="border-l-4 border-muted-foreground/30 pl-4 my-3 italic break-words">
+                                  {children}
+                                </blockquote>
+                              ),
+                              img: ({ src, alt }) => (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img 
+                                  src={src} 
+                                  alt={alt || ''} 
+                                  className="max-w-full h-auto rounded-lg my-2"
+                                />
+                              ),
+                              hr: () => (
+                                <hr className="my-4 border-border" />
+                              ),
+                            }}
+                          >
+                            {response.content}
+                          </Markdown>
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
+              <ScrollBar orientation="vertical" />
             </ScrollArea>
           </TabsContent>
 

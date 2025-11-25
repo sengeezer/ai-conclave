@@ -26,7 +26,7 @@ export function ModelSelector({
   const providers = Object.keys(modelsByProvider);
 
   return (
-    <aside className="flex flex-col h-screen w-72 border-l bg-background overflow-hidden sticky top-0">
+    <aside className="hidden lg:flex flex-col h-screen w-72 border-l bg-background overflow-hidden shrink-0">
       {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center gap-2 mb-2">

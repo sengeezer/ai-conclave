@@ -50,7 +50,7 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
 
   return (
     <>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="max-w-3xl mx-auto">
           {messages.map((message) => (
             <MessageBubble

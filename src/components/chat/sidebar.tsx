@@ -137,7 +137,7 @@ export function Sidebar(props: SidebarProps) {
       </Sheet>
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-72 md:flex-col md:border-r bg-muted/30">
+      <div className="hidden md:flex md:w-72 md:flex-col md:border-r bg-muted/30 shrink-0 overflow-hidden">
         <SidebarContent {...props} />
       </div>
     </>

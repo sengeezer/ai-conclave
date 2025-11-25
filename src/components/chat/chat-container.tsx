@@ -321,7 +321,7 @@ export function ChatContainer() {
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen overflow-hidden">
       {/* Left sidebar - chat history */}
       <Sidebar
         conversations={conversations}
@@ -332,7 +332,7 @@ export function ChatContainer() {
       />
 
       {/* Main chat area */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 min-h-0">
         <header className="flex items-center gap-2 px-4 py-3 border-b md:hidden">
           <Sidebar
             conversations={conversations}

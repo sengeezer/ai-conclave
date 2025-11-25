@@ -1,8 +1,11 @@
+import type { VotingResult } from "./models";
+
 // Simple message type for localStorage storage
 export interface StoredMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  votingResult?: VotingResult; // Only present for multi-model responses
 }
 
 export interface ChatConversation {
@@ -16,4 +19,9 @@ export interface ChatConversation {
 export interface ChatStore {
   conversations: ChatConversation[];
   activeConversationId: string | null;
+}
+
+// Separate store for model selection (to keep it independent of chat history)
+export interface ModelSelectionStore {
+  selectedModels: string[];
 }

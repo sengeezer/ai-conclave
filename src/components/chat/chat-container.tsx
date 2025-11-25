@@ -6,11 +6,14 @@ import { TextStreamChatTransport } from "ai";
 import { ChatMessages } from "./chat-messages";
 import { ChatInput } from "./chat-input";
 import { Sidebar } from "./sidebar";
+import { ModelSelector } from "@/components/model-selector";
 import { useChatHistory } from "@/hooks/use-chat-history";
+import { useModelSelection } from "@/hooks/use-model-selection";
 import type { StoredMessage } from "@/types/chat";
+import type { VotingResult } from "@/types/models";
 
 // Convert UIMessage to StoredMessage format for localStorage
-function convertUIMessageToStored(uiMessage: UIMessage): StoredMessage {
+function convertUIMessageToStored(uiMessage: UIMessage, votingResult?: VotingResult): StoredMessage {
   const textContent = uiMessage.parts
     .filter((part): part is { type: "text"; text: string } => part.type === "text")
     .map((part) => part.text)
@@ -20,6 +23,7 @@ function convertUIMessageToStored(uiMessage: UIMessage): StoredMessage {
     id: uiMessage.id,
     role: uiMessage.role as "user" | "assistant",
     content: textContent,
+    votingResult,
   };
 }
 
@@ -32,8 +36,8 @@ function convertStoredToUIMessage(message: StoredMessage): UIMessage {
   };
 }
 
-// Inner component that uses the chat hook - remounts when conversation changes
-function ChatInstance({
+// Single model chat instance using streaming
+function SingleModelChatInstance({
   conversationId,
   initialMessages,
   pendingMessage,
@@ -44,7 +48,7 @@ function ChatInstance({
   conversationId: string;
   initialMessages?: UIMessage[];
   pendingMessage?: string | null;
-  onMessagesChange: (messages: UIMessage[]) => void;
+  onMessagesChange: (messages: StoredMessage[]) => void;
   onPendingSent?: () => void;
   onError?: (error: Error) => void;
 }) {
@@ -87,18 +91,13 @@ function ChatInstance({
   const prevStatusRef = useRef(status);
   useEffect(() => {
     if (prevStatusRef.current !== "ready" && status === "ready" && messages.length > 0) {
-      onMessagesChange(messages);
+      onMessagesChange(messages.map((m) => convertUIMessageToStored(m)));
     }
     prevStatusRef.current = status;
   }, [status, messages, onMessagesChange]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log("useChat state:", { status, error: error?.message, messageCount: messages.length, conversationId });
-  }, [status, error, messages.length, conversationId]);
-
   const displayMessages = useMemo(
-    () => messages.map(convertUIMessageToStored),
+    () => messages.map((m) => convertUIMessageToStored(m)),
     [messages]
   );
 
@@ -129,6 +128,127 @@ function ChatInstance({
   );
 }
 
+// Multi-model chat instance with voting
+function MultiModelChatInstance({
+  conversationId,
+  initialStoredMessages,
+  pendingMessage,
+  selectedModels,
+  onMessagesChange,
+  onPendingSent,
+}: {
+  conversationId: string;
+  initialStoredMessages: StoredMessage[];
+  pendingMessage?: string | null;
+  selectedModels: string[];
+  onMessagesChange: (messages: StoredMessage[]) => void;
+  onPendingSent?: () => void;
+}) {
+  const [messages, setMessages] = useState<StoredMessage[]>(initialStoredMessages);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Send pending message on mount
+  const hasSentPending = useRef(false);
+  useEffect(() => {
+    if (pendingMessage && !hasSentPending.current) {
+      hasSentPending.current = true;
+      handleSubmit(pendingMessage);
+      onPendingSent?.();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingMessage]);
+
+  const handleSubmit = useCallback(
+    async (content: string) => {
+      setError(null);
+      setIsLoading(true);
+
+      // Add user message immediately
+      const userMessage: StoredMessage = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content,
+      };
+
+      const updatedMessages = [...messages, userMessage];
+      setMessages(updatedMessages);
+
+      // Prepare messages for API
+      const apiMessages = updatedMessages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      try {
+        abortControllerRef.current = new AbortController();
+
+        const response = await fetch("/api/chat/multi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: apiMessages,
+            models: selectedModels,
+          }),
+          signal: abortControllerRef.current.signal,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to get response");
+        }
+
+        const result: VotingResult = await response.json();
+
+        // Add assistant message with voting result
+        const assistantMessage: StoredMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: result.winnerContent,
+          votingResult: result,
+        };
+
+        const finalMessages = [...updatedMessages, assistantMessage];
+        setMessages(finalMessages);
+        onMessagesChange(finalMessages);
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") {
+          // Request was cancelled
+          return;
+        }
+        console.error("Multi-model chat error:", err);
+        setError(err instanceof Error ? err.message : "Unknown error");
+      } finally {
+        setIsLoading(false);
+        abortControllerRef.current = null;
+      }
+    },
+    [messages, selectedModels, onMessagesChange]
+  );
+
+  const handleStop = useCallback(() => {
+    abortControllerRef.current?.abort();
+    setIsLoading(false);
+  }, []);
+
+  return (
+    <>
+      <ChatMessages messages={messages} isLoading={isLoading} />
+      {error && (
+        <div className="mx-4 mb-2 p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
+          Error: {error}
+        </div>
+      )}
+      <ChatInput
+        onSubmit={handleSubmit}
+        isLoading={isLoading}
+        onStop={handleStop}
+      />
+    </>
+  );
+}
+
 export function ChatContainer() {
   const {
     conversations,
@@ -141,6 +261,15 @@ export function ChatContainer() {
     deleteConversation,
   } = useChatHistory();
 
+  const {
+    selectedModels,
+    isLoaded: modelsLoaded,
+    isVotingEnabled,
+    toggleModel,
+    selectAll,
+    clearAll,
+  } = useModelSelection();
+
   // Track pending message to send after conversation is created
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
 
@@ -150,21 +279,25 @@ export function ChatContainer() {
   }, [createConversation]);
 
   const handleMessagesChange = useCallback(
-    (messages: UIMessage[]) => {
+    (messages: StoredMessage[]) => {
       if (activeConversationId) {
-        const converted = messages.map(convertUIMessageToStored);
-        updateConversationMessages(activeConversationId, converted);
+        updateConversationMessages(activeConversationId, messages);
       }
     },
     [activeConversationId, updateConversationMessages]
   );
 
-  // Get initial messages for the current conversation
-  const initialMessages = useMemo(() => {
+  // Get initial messages for the current conversation (as UIMessage for single-model)
+  const initialUIMessages = useMemo(() => {
     if (activeConversation && activeConversation.messages.length > 0) {
       return activeConversation.messages.map(convertStoredToUIMessage);
     }
     return undefined;
+  }, [activeConversation]);
+
+  // Get initial messages as StoredMessage for multi-model
+  const initialStoredMessages = useMemo(() => {
+    return activeConversation?.messages || [];
   }, [activeConversation]);
 
   const handleSubmit = useCallback(
@@ -179,8 +312,7 @@ export function ChatContainer() {
     [activeConversationId, createConversation]
   );
 
-
-  if (!isLoaded) {
+  if (!isLoaded || !modelsLoaded) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -190,6 +322,7 @@ export function ChatContainer() {
 
   return (
     <div className="flex h-screen">
+      {/* Left sidebar - chat history */}
       <Sidebar
         conversations={conversations}
         activeConversationId={activeConversationId}
@@ -198,6 +331,7 @@ export function ChatContainer() {
         onDeleteConversation={deleteConversation}
       />
 
+      {/* Main chat area */}
       <main className="flex-1 flex flex-col min-w-0">
         <header className="flex items-center gap-2 px-4 py-3 border-b md:hidden">
           <Sidebar
@@ -213,14 +347,26 @@ export function ChatContainer() {
         </header>
 
         {activeConversationId ? (
-          <ChatInstance
-            key={activeConversationId}
-            conversationId={activeConversationId}
-            initialMessages={initialMessages}
-            pendingMessage={pendingMessage}
-            onMessagesChange={handleMessagesChange}
-            onPendingSent={() => setPendingMessage(null)}
-          />
+          isVotingEnabled ? (
+            <MultiModelChatInstance
+              key={`multi-${activeConversationId}`}
+              conversationId={activeConversationId}
+              initialStoredMessages={initialStoredMessages}
+              pendingMessage={pendingMessage}
+              selectedModels={selectedModels}
+              onMessagesChange={handleMessagesChange}
+              onPendingSent={() => setPendingMessage(null)}
+            />
+          ) : (
+            <SingleModelChatInstance
+              key={`single-${activeConversationId}`}
+              conversationId={activeConversationId}
+              initialMessages={initialUIMessages}
+              pendingMessage={pendingMessage}
+              onMessagesChange={handleMessagesChange}
+              onPendingSent={() => setPendingMessage(null)}
+            />
+          )
         ) : (
           <>
             <ChatMessages messages={[]} isLoading={false} />
@@ -232,6 +378,15 @@ export function ChatContainer() {
           </>
         )}
       </main>
+
+      {/* Right sidebar - model selection */}
+      <ModelSelector
+        selectedModels={selectedModels}
+        isVotingEnabled={isVotingEnabled}
+        onToggleModel={toggleModel}
+        onSelectAll={selectAll}
+        onClearAll={clearAll}
+      />
     </div>
   );
 }

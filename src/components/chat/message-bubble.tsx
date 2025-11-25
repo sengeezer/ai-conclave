@@ -2,16 +2,26 @@
 
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bot, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Bot, User, Vote, Trophy } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { StoredMessage } from "@/types/chat";
+import { AVAILABLE_MODELS } from "@/types/models";
 
 interface MessageBubbleProps {
   message: StoredMessage;
+  onViewVotingResults?: () => void;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+function getModelName(modelId: string): string {
+  const model = AVAILABLE_MODELS.find((m) => m.id === modelId);
+  return model?.name || modelId;
+}
+
+export function MessageBubble({ message, onViewVotingResults }: MessageBubbleProps) {
   const isUser = message.role === "user";
+  const hasVotingResults = !isUser && message.votingResult;
 
   return (
     <div
@@ -33,7 +43,25 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 space-y-2 overflow-hidden">
-        <p className="text-sm font-medium">{isUser ? "You" : "Assistant"}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium">{isUser ? "You" : "Assistant"}</p>
+          {hasVotingResults && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-6 gap-1.5 text-xs"
+              onClick={onViewVotingResults}
+            >
+              <Trophy className="h-3 w-3 text-yellow-500" />
+              <span className="hidden sm:inline">Winner:</span>
+              <Badge variant="secondary" className="h-5 text-xs px-1.5">
+                {getModelName(message.votingResult!.winnerId)}
+              </Badge>
+              <Vote className="h-3 w-3 ml-1" />
+              <span>{message.votingResult!.scores.length} models</span>
+            </Button>
+          )}
+        </div>
         <div className="prose prose-sm dark:prose-invert max-w-none">
           {isUser ? (
             <p className="whitespace-pre-wrap">{message.content}</p>

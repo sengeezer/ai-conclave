@@ -49,7 +49,7 @@ function SidebarContent({
           <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
-          <span className="font-semibold text-lg">AI Chat</span>
+          <span className="font-semibold text-lg">AI Conclave</span>
         </div>
         <Button
           onClick={onNewChat}

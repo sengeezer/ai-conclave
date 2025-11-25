@@ -62,14 +62,14 @@ export function MessageBubble({ message, onViewVotingResults }: MessageBubblePro
             </Button>
           )}
         </div>
-        <div className="prose prose-sm dark:prose-invert max-w-none">
+        <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
           {isUser ? (
             <p className="whitespace-pre-wrap">{message.content}</p>
           ) : (
             <ReactMarkdown
               components={{
                 pre: ({ children }) => (
-                  <pre className="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm">
+                  <pre className="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm text-zinc-100">
                     {children}
                   </pre>
                 ),
@@ -77,17 +77,38 @@ export function MessageBubble({ message, onViewVotingResults }: MessageBubblePro
                   const isInline = !className;
                   return isInline ? (
                     <code
-                      className="rounded bg-muted px-1.5 py-0.5 text-sm font-mono"
+                      className="rounded bg-zinc-800 dark:bg-zinc-700 px-1.5 py-0.5 text-sm font-mono text-zinc-100"
                       {...props}
                     >
                       {children}
                     </code>
                   ) : (
-                    <code className={className} {...props}>
+                    <code className={cn(className, "text-zinc-100")} {...props}>
                       {children}
                     </code>
                   );
                 },
+                p: ({ children }) => (
+                  <p className="text-foreground">{children}</p>
+                ),
+                li: ({ children }) => (
+                  <li className="text-foreground">{children}</li>
+                ),
+                h1: ({ children }) => (
+                  <h1 className="text-foreground">{children}</h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="text-foreground">{children}</h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="text-foreground">{children}</h3>
+                ),
+                strong: ({ children }) => (
+                  <strong className="text-foreground font-semibold">{children}</strong>
+                ),
+                a: ({ href, children }) => (
+                  <a href={href} className="text-primary hover:underline">{children}</a>
+                ),
               }}
             >
               {message.content}

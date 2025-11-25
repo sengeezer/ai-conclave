@@ -263,11 +263,14 @@ export function ChatContainer() {
 
   const {
     selectedModels,
+    availableModels,
     isLoaded: modelsLoaded,
     isVotingEnabled,
     toggleModel,
     selectAll,
     clearAll,
+    addModelToPool,
+    removeModelFromPool,
   } = useModelSelection();
 
   // Track pending message to send after conversation is created
@@ -357,10 +360,13 @@ export function ChatContainer() {
           <ModelSelector
             variant="mobile"
             selectedModels={selectedModels}
+            availableModels={availableModels}
             isVotingEnabled={isVotingEnabled}
             onToggleModel={toggleModel}
             onSelectAll={selectAll}
             onClearAll={clearAll}
+            onAddModel={addModelToPool}
+            onRemoveModel={removeModelFromPool}
           />
         </header>
 
@@ -401,10 +407,13 @@ export function ChatContainer() {
       <ModelSelector
         variant="desktop"
         selectedModels={selectedModels}
+        availableModels={availableModels}
         isVotingEnabled={isVotingEnabled}
         onToggleModel={toggleModel}
         onSelectAll={selectAll}
         onClearAll={clearAll}
+        onAddModel={addModelToPool}
+        onRemoveModel={removeModelFromPool}
       />
     </div>
   );

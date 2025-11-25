@@ -1,4 +1,4 @@
-import type { VotingResult } from "./models";
+import type { VotingResult, ModelInfo } from "./models";
 
 // Simple message type for localStorage storage
 export interface StoredMessage {
@@ -24,4 +24,6 @@ export interface ChatStore {
 // Separate store for model selection (to keep it independent of chat history)
 export interface ModelSelectionStore {
   selectedModels: string[];
+  // Cache model info so we can display names without re-fetching
+  knownModels?: ModelInfo[];
 }

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Bot, User, Vote, Trophy } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { StoredMessage } from "@/types/chat";
-import { AVAILABLE_MODELS } from "@/types/models";
 
 interface MessageBubbleProps {
   message: StoredMessage;
@@ -15,8 +14,15 @@ interface MessageBubbleProps {
 }
 
 function getModelName(modelId: string): string {
-  const model = AVAILABLE_MODELS.find((m) => m.id === modelId);
-  return model?.name || modelId;
+  // Fallback: extract name from ID (e.g. "openai/gpt-4" -> "GPT-4")
+  const parts = modelId.split("/");
+  if (parts.length > 1) {
+    return parts[1]
+      .split(/[-_]/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+  return modelId;
 }
 
 export function MessageBubble({ message, onViewVotingResults }: MessageBubbleProps) {

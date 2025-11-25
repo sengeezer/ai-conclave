@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import type { VotingResult } from "@/types/models";
-import { AVAILABLE_MODELS } from "@/types/models";
 import { Trophy, Award, Medal } from "lucide-react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -22,8 +21,15 @@ interface VotingResultsModalProps {
 }
 
 function getModelName(modelId: string): string {
-  const model = AVAILABLE_MODELS.find((m) => m.id === modelId);
-  return model?.name || modelId;
+  // Fallback: extract name from ID (e.g. "openai/gpt-4" -> "GPT-4")
+  const parts = modelId.split("/");
+  if (parts.length > 1) {
+    return parts[1]
+      .split(/[-_]/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+  return modelId;
 }
 
 function getProviderColor(modelId: string): string {
@@ -376,4 +382,3 @@ export function VotingResultsModal({
     </Dialog>
   );
 }
-

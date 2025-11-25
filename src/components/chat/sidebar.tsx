@@ -33,6 +33,8 @@ interface SidebarProps {
   onSelectConversation: (id: string) => void;
   onNewChat: () => void;
   onDeleteConversation: (id: string) => void;
+  /** Render mode: 'mobile' for Sheet trigger only, 'desktop' for sidebar only, 'both' for default behavior */
+  variant?: "mobile" | "desktop" | "both";
 }
 
 function SidebarContent({
@@ -117,29 +119,36 @@ function SidebarContent({
   );
 }
 
-export function Sidebar(props: SidebarProps) {
+export function Sidebar({ variant = "both", ...props }: SidebarProps) {
+  const showMobile = variant === "mobile" || variant === "both";
+  const showDesktop = variant === "desktop" || variant === "both";
+
   return (
     <>
-      {/* Mobile Sidebar */}
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0">
-          <SheetHeader className="sr-only">
-            <SheetTitle>Navigation</SheetTitle>
-          </SheetHeader>
-          <SidebarContent {...props} />
-        </SheetContent>
-      </Sheet>
+      {/* Mobile Sidebar - Sheet trigger */}
+      {showMobile && (
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className={variant === "both" ? "md:hidden" : ""}>
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-72 p-0">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Navigation</SheetTitle>
+            </SheetHeader>
+            <SidebarContent {...props} />
+          </SheetContent>
+        </Sheet>
+      )}
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-72 md:flex-col md:border-r bg-muted/30 shrink-0 overflow-hidden">
-        <SidebarContent {...props} />
-      </div>
+      {showDesktop && (
+        <div className="hidden md:flex md:w-72 md:flex-col md:border-r bg-muted/30 shrink-0 overflow-hidden h-full">
+          <SidebarContent {...props} />
+        </div>
+      )}
     </>
   );
 }

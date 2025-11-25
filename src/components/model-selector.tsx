@@ -4,8 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { getModelsByProvider, AVAILABLE_MODELS } from "@/types/models";
-import { Vote, Sparkles, Zap } from "lucide-react";
+import { Vote, Sparkles, Zap, Settings2 } from "lucide-react";
 
 interface ModelSelectorProps {
   selectedModels: string[];
@@ -13,20 +20,22 @@ interface ModelSelectorProps {
   onToggleModel: (modelId: string) => void;
   onSelectAll: () => void;
   onClearAll: () => void;
+  /** Render mode: 'mobile' for Sheet trigger only, 'desktop' for sidebar only, 'both' for default behavior */
+  variant?: "mobile" | "desktop" | "both";
 }
 
-export function ModelSelector({
+function ModelSelectorContent({
   selectedModels,
   isVotingEnabled,
   onToggleModel,
   onSelectAll,
   onClearAll,
-}: ModelSelectorProps) {
+}: Omit<ModelSelectorProps, "variant">) {
   const modelsByProvider = getModelsByProvider();
   const providers = Object.keys(modelsByProvider);
 
   return (
-    <aside className="hidden lg:flex flex-col h-screen w-72 border-l bg-background overflow-hidden shrink-0">
+    <div className="flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center gap-2 mb-2">
@@ -119,7 +128,44 @@ export function ModelSelector({
             : "Select multiple models to enable voting."}
         </p>
       </div>
-    </aside>
+    </div>
+  );
+}
+
+export function ModelSelector({
+  variant = "both",
+  ...props
+}: ModelSelectorProps) {
+  const showMobile = variant === "mobile" || variant === "both";
+  const showDesktop = variant === "desktop" || variant === "both";
+
+  return (
+    <>
+      {/* Mobile Model Selector - Sheet trigger */}
+      {showMobile && (
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className={variant === "both" ? "lg:hidden" : ""}>
+              <Settings2 className="h-5 w-5" />
+              <span className="sr-only">Select models</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-72 p-0">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Model Selection</SheetTitle>
+            </SheetHeader>
+            <ModelSelectorContent {...props} />
+          </SheetContent>
+        </Sheet>
+      )}
+
+      {/* Desktop Sidebar */}
+      {showDesktop && (
+        <aside className="hidden lg:flex flex-col h-screen w-72 border-l bg-background overflow-hidden shrink-0">
+          <ModelSelectorContent {...props} />
+        </aside>
+      )}
+    </>
   );
 }
 

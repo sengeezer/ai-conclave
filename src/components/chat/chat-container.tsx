@@ -322,8 +322,9 @@ export function ChatContainer() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Left sidebar - chat history */}
+      {/* Left sidebar - chat history (desktop only) */}
       <Sidebar
+        variant="desktop"
         conversations={conversations}
         activeConversationId={activeConversationId}
         onSelectConversation={setActiveConversation}
@@ -333,17 +334,34 @@ export function ChatContainer() {
 
       {/* Main chat area */}
       <main className="flex-1 flex flex-col min-w-0 min-h-0">
-        <header className="flex items-center gap-2 px-4 py-3 border-b md:hidden">
-          <Sidebar
-            conversations={conversations}
-            activeConversationId={activeConversationId}
-            onSelectConversation={setActiveConversation}
-            onNewChat={handleNewChat}
-            onDeleteConversation={deleteConversation}
-          />
-          <h1 className="font-semibold truncate">
+        {/* Mobile/Tablet header - shows below lg breakpoint (< 1024px) */}
+        <header className="flex items-center gap-2 px-4 py-3 border-b lg:hidden">
+          {/* Left: Chat history sidebar trigger (only shows below md/768px) */}
+          <div className="md:hidden">
+            <Sidebar
+              variant="mobile"
+              conversations={conversations}
+              activeConversationId={activeConversationId}
+              onSelectConversation={setActiveConversation}
+              onNewChat={handleNewChat}
+              onDeleteConversation={deleteConversation}
+            />
+          </div>
+          
+          {/* Center: Title */}
+          <h1 className="flex-1 font-semibold truncate">
             {activeConversation?.title || "New Chat"}
           </h1>
+          
+          {/* Right: Model selector trigger (shows when right sidebar hidden) */}
+          <ModelSelector
+            variant="mobile"
+            selectedModels={selectedModels}
+            isVotingEnabled={isVotingEnabled}
+            onToggleModel={toggleModel}
+            onSelectAll={selectAll}
+            onClearAll={clearAll}
+          />
         </header>
 
         {activeConversationId ? (
@@ -379,8 +397,9 @@ export function ChatContainer() {
         )}
       </main>
 
-      {/* Right sidebar - model selection */}
+      {/* Right sidebar - model selection (desktop only) */}
       <ModelSelector
+        variant="desktop"
         selectedModels={selectedModels}
         isVotingEnabled={isVotingEnabled}
         onToggleModel={toggleModel}

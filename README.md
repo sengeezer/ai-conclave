@@ -1,15 +1,17 @@
-# AI Chat
+# AI Conclave
 
-A beautiful, modern AI chat application built with Next.js, Vercel AI SDK, and Open Router.
+> ⚠️ **Disclaimer**: This repository has been vibe coded with AI.
+
+A chat application to prompt multiple models at once
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmartinzokov%2Fai-conclave&env=OPENROUTER_API_KEY&envDescription=Your%20OpenRouter%20API%20key&envLink=https%3A%2F%2Fopenrouter.ai%2Fkeys)
 
 ## Features
 
-- **Real-time Streaming** - Responses stream in real-time as they're generated
-- **Chat History** - Conversations are stored in localStorage for persistence
-- **Multiple Conversations** - Create, switch between, and delete conversations
-- **Dark/Light Mode** - System-aware theme with manual toggle
-- **Responsive Design** - Works beautifully on desktop and mobile
-- **Markdown Support** - AI responses render with markdown formatting
+- **Multiple responses** - Each prompt is sent to multiple LLMs
+- **Voting phase** - After all models respond, they then vote and rank each response from other models - 2 points for a top choice and 1 point for second choice. Winning response gets displayed
+- **Adding more models** - The sidebar alows adding of extra models from OpenRouter
+- **Stateless** - Nothing is stored on a server. All chats are kept in localStorage inside the browser.
 
 ## Tech Stack
 
@@ -56,20 +58,6 @@ npm run dev
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Configuration
-
-### Changing the Model
-
-You can change the LLM model by editing `src/app/api/chat/route.ts`:
-
-```typescript
-const result = streamText({
-  model: openrouter("openai/gpt-4o-mini"), // Change this to any Open Router model
-  // ...
-});
-```
-
-See [Open Router Models](https://openrouter.ai/docs#models) for available options.
 
 ## License
 

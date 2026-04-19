@@ -15,7 +15,7 @@ A chat application to prompt multiple models at once
 
 ## Tech Stack
 
-- **Next.js 15** with App Router
+- **Next.js 16** with App Router
 - **Vercel AI SDK v5** for streaming chat
 - **Open Router** as the LLM provider (access to 100+ models)
 - **shadcn/ui** for beautiful UI components
@@ -35,7 +35,7 @@ A chat application to prompt multiple models at once
 
 ```bash
 git clone <repo-url>
-cd ai-multichat
+cd ai-conclave
 ```
 
 2. Install dependencies:

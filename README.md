@@ -1,10 +1,10 @@
 # AI Conclave
 
-> ⚠️ **Disclaimer**: This repository has been vibe coded with AI.
+> ⚠️ **Disclaimer**: This repository has been mostly vibe coded with AI.
 
 A chat application to prompt multiple models at once
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmartinzokov%2Fai-conclave&env=OPENROUTER_API_KEY&envDescription=Your%20OpenRouter%20API%20key&envLink=https%3A%2F%2Fopenrouter.ai%2Fkeys)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsengeezer%2Fai-conclave&env=OPENROUTER_API_KEY&envDescription=Your%20OpenRouter%20API%20key&envLink=https%3A%2F%2Fopenrouter.ai%2Fkeys)
 
 ## Features
 

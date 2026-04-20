@@ -12,7 +12,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, ExternalLink } from "lucide-react";
-import { ModelInfo, getProviderFromId, OpenRouterModel } from "@/types/models";
+import { getProviderFromId } from "@/lib/models";
+import type { ModelInfo, OpenRouterModel } from "@/types/models";
 
 interface AddModelModalProps {
   isOpen: boolean;

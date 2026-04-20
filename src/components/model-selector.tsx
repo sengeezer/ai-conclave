@@ -12,7 +12,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { getModelsByProvider, ModelInfo } from "@/types/models";
+import { getModelsByProvider } from "@/lib/models";
+import type { ModelInfo } from "@/types/models";
 import { Vote, Sparkles, Zap, Settings2, Plus, X } from "lucide-react";
 import { AddModelModal } from "./add-model-modal";
 

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { ModelSelectionStore } from "@/types/chat";
-import { ModelInfo, OpenRouterModel, getProviderFromId, AVAILABLE_MODELS } from "@/types/models";
+import { AVAILABLE_MODELS, getProviderFromId } from "@/lib/models";
+import type { ModelInfo, OpenRouterModel } from "@/types/models";
 
 const MODEL_SELECTION_KEY = "ai_chat_model_selection";
 // Use the predefined available models as the pool
